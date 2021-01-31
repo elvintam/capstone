@@ -52,3 +52,7 @@ edx %>% distinct(genres)
 #Q10
 
 edx %>% distinct(userId) %>% nrow()
+
+#Q11
+
+edx %>% distinct(movieId) %>% nrow()
