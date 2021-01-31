@@ -64,3 +64,7 @@ edx %>% group_by(userId) %>% summarise(n())
 #Q13
 
 edx %>% group_by(userId) %>% summarise(n = n()) %>% filter(n>=50)
+
+#Q14
+
+edx %>% group_by(userId) %>% summarise(n = n()) %>% filter(n>=50)
