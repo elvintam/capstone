@@ -56,3 +56,7 @@ edx %>% distinct(userId) %>% nrow()
 #Q11
 
 edx %>% distinct(movieId) %>% nrow()
+
+#Q12
+
+edx %>% group_by(userId) %>% summarise(n())
