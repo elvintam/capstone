@@ -33,4 +33,6 @@ genreavgrating <- sapply(genrelist, function(x){
   result
 })
 
+genreavgrating <- as.data.frame(genreavgrating)
+
 genreavgrating
