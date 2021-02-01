@@ -15,3 +15,9 @@ temp <- temp %>% mutate(genrescount = str_count(edx$genres, pattern = "\\|") + 1
 
 ##genres selection
 temp %>% filter_at(vars(starts_with("genres")), any_vars(. == "Sci-Fi"))
+
+temp %>% filter_at(vars(starts_with("genres")), any_vars(. == "Drama")) %>% mean(rating)
+
+edx %>% mean(rating)
+  
+class(temp$rating)
