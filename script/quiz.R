@@ -45,26 +45,3 @@ edx %>% group_by(rating) %>% summarise(n = n()) %>% arrange(desc(n)) %>% top_n(5
 
 edx %>% group_by(rating) %>% summarise(n = n()) %>% arrange(desc(rating))
 
-#Q9
-
-edx %>% distinct(genres)
-
-#Q10
-
-edx %>% distinct(userId) %>% nrow()
-
-#Q11
-
-edx %>% distinct(movieId) %>% nrow()
-
-#Q12
-
-edx %>% group_by(userId) %>% summarise(n())
-
-#Q13
-
-edx %>% group_by(userId) %>% summarise(n = n()) %>% filter(n>=50)
-
-#Q14
-
-edx %>% group_by(userId) %>% summarise(n = n()) %>% filter(n>=50)
