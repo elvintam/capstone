@@ -36,3 +36,6 @@ genreavgrating <- sapply(genrelist, function(x){
 genreavgrating <- as.data.frame(genreavgrating)
 
 genreavgrating
+
+remove(temp)
+remove(movieIDlist)

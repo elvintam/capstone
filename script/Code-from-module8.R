@@ -1,3 +1,6 @@
+#### methodology
+#http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/
+
 
 #### RMSE
 RMSE <- function(true_ratings, predicted_ratings){
@@ -20,3 +23,4 @@ test_set <- test_set %>%
   semi_join(train_set, by = "userId")
 
 ### partition creation
+
