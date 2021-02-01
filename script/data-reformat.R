@@ -16,8 +16,21 @@ temp <- temp %>% mutate(genrescount = str_count(edx$genres, pattern = "\\|") + 1
 ##genres selection
 temp %>% filter_at(vars(starts_with("genres")), any_vars(. == "Sci-Fi"))
 
-temp %>% filter_at(vars(starts_with("genres")), any_vars(. == "Drama")) %>% mean(rating)
+edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
 
-edx %>% mean(rating)
-  
-class(temp$rating)
+
+
+genrelist <- c(unique(temp$genres1), unique(temp$genres2),
+               unique(temp$genres3), unique(temp$genres4),
+               unique(temp$genres5), unique(temp$genres6),
+               unique(temp$genres7), unique(temp$genres8))
+
+genrelist <- unique(genrelist)
+
+genreavgrating <- sapply(genrelist, function(x){
+  result <- edx %>% filter(str_detect(genres, x)) %>% 
+    summarise(avg = mean(rating)) %>% .$avg
+  result
+})
+
+genreavgrating
