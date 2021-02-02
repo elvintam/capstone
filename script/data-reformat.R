@@ -1,5 +1,5 @@
 library(tidyverse)
-library(dslabs)
+#library(dslabs)
 library(caret)
 library(data.table)
 
@@ -38,4 +38,19 @@ genreavgrating <- as.data.frame(genreavgrating)
 genreavgrating
 
 remove(temp)
-remove(movieIDlist)
+
+
+### partition creation
+set.seed(23456)
+test_index <- createDataPartition(y = edx$rating, times = 1,
+                                  p = 0.2, list = FALSE)
+test_set <- edx[test_index,]
+train_set <- edx[-test_index,]
+
+test_set <- test_set %>% 
+  semi_join(train_set, by = "movieId") %>%
+  semi_join(train_set, by = "userId")
+
+### partition creation
+
+edx %>% summarise(n_distinct(rating))
