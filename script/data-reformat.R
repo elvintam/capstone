@@ -48,3 +48,5 @@ edx %>% summarise(n_distinct(movieId))
 edx %>% summarise(n_distinct(genres))
 
 edx %>% distinct(genres)
+
+rm(movielens)
