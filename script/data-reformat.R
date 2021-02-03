@@ -12,7 +12,7 @@ temp %>% separate(title, into = c("titletemp", "year"), sep = "\\s\\((?=[0-9]{4}
 help(str_split)
 help(separate)
 
-edx[7852]
+edx[7854]
 
 ###breakdown genres
 temp <- temp %>% mutate(genrescount = str_count(edx$genres, pattern = "\\|") + 1) %>%
