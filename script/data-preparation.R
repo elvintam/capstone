@@ -1,5 +1,4 @@
 library(tidyverse)
-library(dslabs)
 library(caret)
 library(data.table)
 
