@@ -7,12 +7,8 @@ head(edx)
 
 temp <- edx
 
-temp %>% separate(title, into = c("titletemp", "year"), sep = "\\s\\((?=[0-9]{4}\\))", remove = TRUE)
-
-help(str_split)
-help(separate)
-
-edx[7854]
+temp %>% separate(title, into = c("title", "year"), sep = "\\s\\((?=[0-9]{4}\\))", remove = TRUE) %>% 
+  mutate(year = str_sub(year, 1, 4))
 
 ###breakdown genres
 temp <- temp %>% mutate(genrescount = str_count(edx$genres, pattern = "\\|") + 1) %>%
