@@ -7,6 +7,14 @@ head(edx)
 
 temp <- edx
 
+temp %>% separate(title, into = c("titletemp", "year"), sep = "\\s\\((?=[0-9]{4}\\))", remove = TRUE)
+
+help(str_split)
+help(separate)
+
+edx[7853]
+
+###breakdown genres
 temp <- temp %>% mutate(genrescount = str_count(edx$genres, pattern = "\\|") + 1) %>%
   separate(genres, into = c("genres1", "genres2", "genres3", 
                             "genres4","genres5", "genres6",
@@ -16,9 +24,8 @@ temp <- temp %>% mutate(genrescount = str_count(edx$genres, pattern = "\\|") + 1
 ##genres selection
 temp %>% filter_at(vars(starts_with("genres")), any_vars(. == "Sci-Fi"))
 
-edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
-
-
+##avg rating for genre
+#edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
 
 genrelist <- c(unique(temp$genres1), unique(temp$genres2),
                unique(temp$genres3), unique(temp$genres4),
@@ -53,4 +60,7 @@ test_set <- test_set %>%
 
 ### partition creation
 
-edx %>% summarise(n_distinct(rating))
+edx %>% summarise(n_distinct(movieId))
+edx %>% summarise(n_distinct(genres))
+
+edx %>% distinct(genres)
