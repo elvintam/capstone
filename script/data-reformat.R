@@ -60,4 +60,10 @@ movie_avgs <- train_set %>%
 
 head(movie_avgs)
 
+predicted_ratings <- mu + test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  .$b_i
+
+model_1_rmse <- RMSE(predicted_ratings, test_set$rating)
+model_1_rmse
 
