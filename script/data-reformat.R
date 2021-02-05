@@ -17,10 +17,10 @@ head(temp)
 summary(temp)
 
 ##genres selection
-temp %>% filter_at(vars(starts_with("genres")), any_vars(. == "Sci-Fi"))
+#temp %>% filter_at(vars(starts_with("genres")), any_vars(. == "Sci-Fi"))
 
 ##avg rating for genre
-#edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
+edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
 
 
 ### partition creation
@@ -36,7 +36,7 @@ test_set <- test_set %>%
 
 rm(temp)
 rm(test_index)
-### partition creation
+### end partition creation
 
 ### create genre avg rating table
 genreavgrating <- train_set %>% group_by(genres) %>%
@@ -45,15 +45,16 @@ genreavgrating <- train_set %>% group_by(genres) %>%
 
 head(genreavgrating)
 
-### create genre avg rating table
+### end create genre avg rating table
 
-mu_hat <- mean(train_set$rating)
-mu_hat
+mu <- mean(train_set$rating)
+mu
 
-naive_rmse <- RMSE(mu_hat, test_set$rating)
+naive_rmse <- RMSE(mu, test_set$rating)
 naive_rmse
 
-mu <- mean(train_set$rating) 
+###naive + movie
+
 movie_avgs <- train_set %>% 
   group_by(movieId) %>% 
   summarize(b_i = mean(rating - mu))
@@ -67,3 +68,21 @@ predicted_ratings <- mu + test_set %>%
 model_1_rmse <- RMSE(predicted_ratings, test_set$rating)
 model_1_rmse
 
+###end naive + movie
+
+###naive + movie + user
+
+user_avgs <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  group_by(userId) %>%
+  summarize(b_u = mean(rating - mu - b_i))
+
+predicted_ratings <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  mutate(pred = mu + b_i + b_u) %>%
+  .$pred
+
+predicted_ratings
+
+model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
