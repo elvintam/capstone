@@ -10,13 +10,21 @@ library(data.table)
 # https://grouplens.org/datasets/movielens/10m/
 # http://files.grouplens.org/datasets/movielens/ml-10m.zip
 
-dl <- tempfile()
-download.file("http://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
+#unzip version
+#dl <- tempfile()
+#download.file("http://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
 
-ratings <- fread(text = gsub("::", "\t", readLines(unzip(dl, "ml-10M100K/ratings.dat"))),
+#ratings <- fread(text = gsub("::", "\t", readLines(unzip(dl, "ml-10M100K/ratings.dat"))),
+#                 col.names = c("userId", "movieId", "rating", "timestamp"))
+#
+#movies <- str_split_fixed(readLines(unzip(dl, "ml-10M100K/movies.dat")), "\\::", 3)
+#colnames(movies) <- c("movieId", "title", "genres")
+#####
+
+ratings <- fread(text = gsub("::", "\t", readLines("ml-10M100K/ratings.dat")),
                  col.names = c("userId", "movieId", "rating", "timestamp"))
 
-movies <- str_split_fixed(readLines(unzip(dl, "ml-10M100K/movies.dat")), "\\::", 3)
+movies <- str_split_fixed(readLines("ml-10M100K/movies.dat"), "\\::", 3)
 colnames(movies) <- c("movieId", "title", "genres")
 
 # if using R 4.0 or later:
