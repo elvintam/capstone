@@ -40,7 +40,7 @@ rm(test_index)
 
 ### create genre avg rating table
 genreavgrating <- train_set %>% group_by(genres) %>%
-  summarize(n = n(), avg = mean(rating), se = sd(rating)/sqrt(n())) %>% 
+  summarize(n = n(), avg = mean(rating)) %>% 
   arrange(desc(n))
 
 head(genreavgrating)
