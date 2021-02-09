@@ -14,29 +14,32 @@ temp <- temp %>% separate(title, into = c("title", "year"), sep = "\\s\\((?=[0-9
   
 head(temp)
 
-summary(temp)
-
-##genres selection
-#temp %>% filter_at(vars(starts_with("genres")), any_vars(. == "Sci-Fi"))
-
 ##avg rating for genre
-edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
+#edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
 
 
 ### partition creation
-set.seed(23456, sample.kind="Rounding") 
+set.seed(1234, sample.kind="Rounding") 
 test_index <- createDataPartition(y = temp$rating, times = 1,
                                   p = 0.2, list = FALSE)
 test_set <- temp[test_index,]
 train_set <- temp[-test_index,]
 
-test_set <- test_set %>% 
-  semi_join(train_set, by = "movieId") %>%
-  semi_join(train_set, by = "userId")
+### to remove NA
+#test_set <- test_set %>% 
+#  semi_join(train_set, by = "movieId") %>%
+#  semi_join(train_set, by = "userId")
+### end to remove NA
 
 rm(temp)
 rm(test_index)
 ### end partition creation
+
+
+
+
+
+
 
 ### create genre avg rating table
 genreavgrating <- train_set %>% group_by(genres) %>%
@@ -83,7 +86,26 @@ predicted_ratings <- test_set %>%
   mutate(pred = mu + b_i + b_u) %>%
   .$pred
 
-predicted_ratings
+model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
+model_2_rmse
+
+
+predicted_ratings <- test_set %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  mutate(temp = mu + b_i + b_u) %>%
+  mutate(pred = ifelse(is.na(temp), mu-1, temp)) %>%
+  .$pred
 
 model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
+model_2_rmse
+
+predicted_ratings <- validation %>% 
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  mutate(temp = mu + b_i + b_u) %>%
+  mutate(pred = ifelse(is.na(temp), mu-1, temp)) %>%
+  .$pred
+
+model_2_rmse <- RMSE(predicted_ratings, validation$rating)
 model_2_rmse

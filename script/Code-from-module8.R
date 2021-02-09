@@ -2,6 +2,16 @@
 #http://blog.echen.me/2011/10/24/winning-the-netflix-prize-a-summary/
 
 
+# 0 points: No RMSE 
+# 5 points: RMSE >= 0.90000 AND/OR the reported RMSE is the result of overtraining (validation set)  
+# AND/OR the reported RMSE is the result of simply copying and running code provided in previous courses in the series.
+# 10 points: 0.86550 <= RMSE <= 0.89999
+# 15 points: 0.86500 <= RMSE <= 0.86549
+# 20 points: 0.86490 <= RMSE <= 0.86499
+# 25 points: RMSE < 0.86490
+
+
+
 #### RMSE
 RMSE <- function(true_ratings, predicted_ratings){
   sqrt(mean((true_ratings - predicted_ratings)^2))
@@ -12,7 +22,8 @@ RMSE <- function(true_ratings, predicted_ratings){
 ### partition creation
 
 library(caret)
-set.seed(755)
+#set.seed(755)
+set.seed(755, sample.kind="Rounding") 
 test_index <- createDataPartition(y = movielens$rating, times = 1,
                                   p = 0.2, list = FALSE)
 test_set <- movielens[test_index,]
@@ -91,13 +102,14 @@ library(lubridate)
 library(dslabs)
 data("movielens")
 
-
+###Q1
 movielens %>% group_by(movieId) %>%
   summarize(n = n(), year = as.character(first(year))) %>%
   qplot(year, n, data = ., geom = "boxplot") +
   coord_trans(y = "sqrt") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
+###Q2
 movielens %>% 
   filter(year >= 1993) %>%
   group_by(movieId) %>%
@@ -108,7 +120,21 @@ movielens %>%
   top_n(25, rate) %>%
   arrange(desc(rate))
 
+###Q3
+movielens %>% 
+  filter(year >= 1993) %>%
+  group_by(movieId) %>%
+  summarize(n = n(), years = 2018 - first(year),
+            title = title[1],
+            rating = mean(rating)) %>%
+  mutate(rate = n/years) %>%
+  ggplot(aes(rate, rating)) +
+  geom_point() +
+  geom_smooth()
 
+
+
+###Q6
 movielens %>% 
   mutate(date = round_date(as_datetime(timestamp), unit = "week")) %>%
   group_by(date) %>%
@@ -118,7 +144,7 @@ movielens %>%
   geom_smooth()
 
 
-### group by genres
+###Q8
 
 movielens %>% group_by(genres) %>%
   summarize(n = n(), avg = mean(rating), se = sd(rating)/sqrt(n())) %>%
