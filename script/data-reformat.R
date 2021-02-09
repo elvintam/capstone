@@ -24,7 +24,7 @@ edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
 
 
 ### partition creation
-set.seed(23456)
+set.seed(23456, sample.kind="Rounding") 
 test_index <- createDataPartition(y = temp$rating, times = 1,
                                   p = 0.2, list = FALSE)
 test_set <- temp[test_index,]
@@ -86,3 +86,4 @@ predicted_ratings <- test_set %>%
 predicted_ratings
 
 model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
+model_2_rmse
