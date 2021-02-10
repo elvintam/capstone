@@ -6,54 +6,61 @@ library(lubridate)
 train_set %>% summarize(n_distinct(movieId))
 #10,638
 
-mean(train_set$rating)
+train_set_mu <- mean(train_set$rating)
 #3.512567
 
+max(train_set$year)
+#2008
 
+max(train_set$date)
+#"2009-01-05 04:52:22 UTC"
+
+### fit_mu_by_rate model, use 2009 as end since max year is 2008
 fit_mu_by_rate <- train_set %>% 
   group_by(movieId) %>%
-  summarize(n = n(), years = 2018 - first(year),
+  summarize(n = n(), years = 2009 - first(year),
             rating = mean(rating)) %>%
   mutate(rate = n/years) %>%
   lm(rating ~ rate, data = .)
 
-fit_mu_by_rate$coef
+### end fit_mu_by_rate model 
 
-k <- anti_join(test_set, train_set, by = "movieId")
+mu <- test_set %>% semi_join(train_set, by = "movieId") %>%
+  distinct(movieId) %>% mutate(mu = train_set_mu) 
 
-s <-setdiff(test_set$movieId, train_set$movieId)
+s <- test_set %>% anti_join(train_set, by = "movieId") %>%
+  distinct(movieId)
 
-test_set %>% filter(movieId %in% s) %>% group_by(movieId) %>%
-  summarise(n = n())
+setdiff(test_set$movieId, train_set)
+  
+temp <- test_set %>% filter(movieId %in% s$movieId) %>% group_by(movieId) %>%
+  summarize(n = n(), years = 2009 - first(year),
+            rating = mean(rating)) %>%
+  mutate(rate = n/years) %>% 
+  mutate(mu = fit_mu_by_rate$coef[1] + fit_mu_by_rate$coef[2]* rate) %>%
+  select(movieId, mu)
+
+mu <- rbind(mu, temp)
+
+rm(s, temp)
+mu
+
+
 
 #rating predict(fit, rate)
 
 
-test_set_rate <- rbind(train_set, test_set) %>% 
-  group_by(movieId) %>%
-  summarize(n = n(), years = 2018 - first(year),
-            rating = mean(rating)) %>%
-  mutate(rate = n/years) %>%
-  mutate(rating_by_rate = fit_mu_by_rate$coef[1] + 
-           fit_mu_by_rate$coef[2] * rate) %>%
-  ungroup()
-
-test_set_rate
+model_0 <- RMSE(train_set_mu, test_set$rating)
+rmse_results <- data_frame(method = "Just the average", 
+                           RMSE = model_0)
 
 
-predicted_ratings <- test_set %>% 
-  group_by(movieId) %>%
-  summarize(n = n()) %>% ungroup()
+model_1 <- RMSE(test_set %>% left_join(mu, by = "movieId") %>% pull(mu),
+              test_set$rating)
 
-predicted_ratings
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(method = "Avg with NA replace", 
+                                     RMSE = model_1))
 
-%>%
-  left_join(test_set_rate, by='movieId') 
-
-predicted_ratings
-
-%>%
-  pull(rating_by_rate)
-
-mu_by_rate_rmse <- RMSE(predicted_ratings, test_set$rating)
-mu_by_rate_rmse
+options(pillar.sigfig = 7)
+rmse_results

@@ -14,6 +14,8 @@ temp <- temp %>% separate(title, into = c("title", "year"), sep = "\\s\\((?=[0-9
   
 head(temp)
 
+summary(temp)
+
 ##avg rating for genre
 #edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
 
@@ -53,7 +55,7 @@ train_set %>% group_by(movieId) %>%
 
 train_set %>% 
   group_by(movieId) %>%
-  summarize(n = n(), years = 2018 - first(year),
+  summarize(n = n(), years = 2009 - first(year),
             title = title[1],
             rating = mean(rating)) %>%
   mutate(rate = n/years) %>%
