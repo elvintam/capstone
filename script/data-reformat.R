@@ -36,6 +36,34 @@ rm(test_index)
 ### end partition creation
 
 
+### data explory
+
+summary(train_set)
+
+train_set %>% group_by(movieId) %>%
+  summarize(n = n(), year = as.character(first(year))) %>%
+  qplot(year, n, data = ., geom = "boxplot") +
+  coord_trans(y = "sqrt") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
+
+### rating based on rate chart
+
+train_set %>% 
+  group_by(movieId) %>%
+  summarize(n = n(), years = 2018 - first(year),
+            title = title[1],
+            rating = mean(rating)) %>%
+  mutate(rate = n/years) %>%
+  ggplot(aes(rate, rating)) +
+  geom_point() +
+  geom_smooth()
+
+#end chart
+
+
 
 
 
