@@ -28,12 +28,10 @@ fit_mu_by_rate <- train_set %>%
 mu <- test_set %>% semi_join(train_set, by = "movieId") %>%
   distinct(movieId) %>% mutate(mu = train_set_mu) 
 
-s <- test_set %>% anti_join(train_set, by = "movieId") %>%
-  distinct(movieId)
-
-setdiff(test_set$movieId, train_set)
   
-temp <- test_set %>% filter(movieId %in% s$movieId) %>% group_by(movieId) %>%
+temp <- test_set %>% 
+  filter(movieId %in% setdiff(test_set$movieId, train_set$movieId)) %>% 
+  group_by(movieId) %>%
   summarize(n = n(), years = 2009 - first(year),
             rating = mean(rating)) %>%
   mutate(rate = n/years) %>% 
@@ -42,10 +40,8 @@ temp <- test_set %>% filter(movieId %in% s$movieId) %>% group_by(movieId) %>%
 
 mu <- rbind(mu, temp)
 
-rm(s, temp)
+rm(temp)
 mu
-
-
 
 #rating predict(fit, rate)
 
