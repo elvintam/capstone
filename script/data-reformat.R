@@ -65,9 +65,16 @@ train_set %>%
 
 #end chart
 
-
-
-
+### genre count chart
+train_set %>% group_by(genrescount) %>%
+  summarize(n = n(), avg = mean(rating), se = sd(rating)/sqrt(n())) %>%
+  #filter(n >= 1000) %>% 
+  mutate(genres = reorder(genrescount, avg)) %>%
+  ggplot(aes(x = genrescount, y = avg, ymin = avg - 2*se, ymax = avg + 2*se)) + 
+  geom_point() +
+  geom_errorbar() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+###end genre count chart
 
 
 

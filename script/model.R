@@ -25,7 +25,7 @@ fit_rateperyear <- train_set %>%
 
 ### end fit_rateperyear model 
 
-rateperyear_avgs <- test_set %>% semi_join(train_set, by = "movieId") %>%
+rateperyear_avgs <- train_set %>% 
   group_by(movieId) %>%
   summarize(n = n(), years = 2009 - first(year),
             rating = mean(rating)) %>%
@@ -37,18 +37,18 @@ rateperyear_avgs <- test_set %>% semi_join(train_set, by = "movieId") %>%
   mutate(b_r = pred - mu) %>%
   select(movieId, b_r)
 
-temp <- test_set %>% 
-  filter(movieId %in% setdiff(test_set$movieId, train_set$movieId)) %>% 
-  group_by(movieId) %>%
-  summarize(n = n(), years = 2009 - first(year),
-            rating = mean(rating)) %>%
-  mutate(rateperyear = n/years) %>%
-  mutate(pred = fit_rateperyear$coef[1] + fit_rateperyear$coef[2] * rateperyear) %>%
-  mutate(b_r = pred - mu) %>%
-  select(movieId, b_r)
+ temp <- test_set %>%
+   filter(movieId %in% setdiff(test_set$movieId, train_set$movieId)) %>%
+   group_by(movieId) %>%
+   summarize(n = n(), years = 2009 - first(year),
+             rating = mean(rating)) %>%
+   mutate(rateperyear = n/years) %>%
+   mutate(pred = fit_rateperyear$coef[1] + fit_rateperyear$coef[2] * rateperyear) %>%
+   mutate(b_r = pred - mu) %>%
+   select(movieId, b_r)
 
-rateperyear_avgs <- rbind(rateperyear_avgs, temp)
-rm(temp)
+ rateperyear_avgs <- rbind(rateperyear_avgs, temp)
+ rm(temp)
 
 
 predicted_ratings <- mu + test_set %>% 
@@ -110,6 +110,31 @@ model_3 <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           data_frame(method="RateperYear + Movie + User",  
                                      RMSE = model_3 ))
-rmse_result_test <- rmse_results
+rmse_results
+
+#end user_avgs
+
+
+genre_avgs <- test_set %>%
+  left_join(rateperyear_avgs, by='movieId') %>%
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  group_by(genres) %>%
+  summarize(b_g = mean(rating - mu - b_r - b_i - b_u))
+
+predicted_ratings <- test_set %>% 
+  left_join(rateperyear_avgs, by='movieId') %>%
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  left_join(genre_avgs, by='genres') %>%
+  mutate(pred = mu + b_r + b_i + b_u + b_g) %>%
+  pull(pred)
+
+model_4 <- RMSE(predicted_ratings, test_set$rating)
+rmse_results <- bind_rows(rmse_results,
+                          data_frame(method="RateperYear + Movie + User + Genre",  
+                                     RMSE = model_4 ))
+rmse_results
+
 
 
