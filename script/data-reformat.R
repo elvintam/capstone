@@ -61,7 +61,7 @@ train_set %>%
   mutate(rate = n/years) %>%
   ggplot(aes(rate, rating)) +
   geom_point() +
-  geom_smooth()
+  geom_smooth(method = "lm")
 
 #end chart
 
