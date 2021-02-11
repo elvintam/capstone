@@ -20,8 +20,8 @@ summary(temp)
 #edx %>% filter(str_detect(genres, "Drama")) %>% summarise(mean(rating))
 
 
-### partition creation
-set.seed(1234, sample.kind="Rounding") 
+### partition creation, previous one 1234
+set.seed(78789, sample.kind="Rounding") 
 test_index <- createDataPartition(y = temp$rating, times = 1,
                                   p = 0.2, list = FALSE)
 test_set <- temp[test_index,]
