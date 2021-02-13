@@ -4,9 +4,9 @@ library(data.table)
 library(lubridate)
 
 
-#lambdas <- seq(3, 6, 0.25)
+# lambdas <- seq(2, 6, 0.25)
 
-lambdas <- 4.75
+lambdas <- 4.25
 l <- lambdas
 
 # rmses <- sapply(lambdas, function(l) {
@@ -118,7 +118,6 @@ predicted_ratings <- test_set %>%
   pull(pred)
 
 predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
-
 model_3 <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method="RateperYear + Movie + User",  
@@ -143,7 +142,6 @@ predicted_ratings <- test_set %>%
   pull(pred)
 
 predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
-
 model_4 <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method="RateperYear + Movie + User + Genre",  
@@ -154,7 +152,7 @@ rmse_results
 # })
 
 # qplot(lambdas, rmses)
-# 
+
 # min(rmses)
 # lambdas[which.min(rmses)]
 
