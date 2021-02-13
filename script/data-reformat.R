@@ -27,11 +27,11 @@ test_index <- createDataPartition(y = temp$rating, times = 1,
 test_set <- temp[test_index,]
 train_set <- temp[-test_index,]
 
-### to remove NA
-#test_set <- test_set %>% 
-#  semi_join(train_set, by = "movieId") %>%
-#  semi_join(train_set, by = "userId")
-### end to remove NA
+## to remove NA
+test_set <- test_set %>%
+ semi_join(train_set, by = "movieId") %>%
+ semi_join(train_set, by = "userId")
+## end to remove NA
 
 rm(temp)
 rm(test_index)
@@ -65,84 +65,5 @@ train_set %>%
 
 #end chart
 
-### genre count chart
-train_set %>% group_by(genrescount) %>%
-  summarize(n = n(), avg = mean(rating), se = sd(rating)/sqrt(n())) %>%
-  #filter(n >= 1000) %>% 
-  mutate(genres = reorder(genrescount, avg)) %>%
-  ggplot(aes(x = genrescount, y = avg, ymin = avg - 2*se, ymax = avg + 2*se)) + 
-  geom_point() +
-  geom_errorbar() + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-###end genre count chart
 
 
-
-### create genre avg rating table
-genreavgrating <- train_set %>% group_by(genres) %>%
-  summarize(n = n(), avg = mean(rating)) %>% 
-  arrange(desc(n))
-
-head(genreavgrating)
-
-### end create genre avg rating table
-
-mu <- mean(train_set$rating)
-mu
-
-naive_rmse <- RMSE(mu, test_set$rating)
-naive_rmse
-
-###naive + movie
-
-movie_avgs <- train_set %>% 
-  group_by(movieId) %>% 
-  summarize(b_i = mean(rating - mu))
-
-head(movie_avgs)
-
-predicted_ratings <- mu + test_set %>% 
-  left_join(movie_avgs, by='movieId') %>%
-  .$b_i
-
-model_1_rmse <- RMSE(predicted_ratings, test_set$rating)
-model_1_rmse
-
-###end naive + movie
-
-###naive + movie + user
-
-user_avgs <- test_set %>% 
-  left_join(movie_avgs, by='movieId') %>%
-  group_by(userId) %>%
-  summarize(b_u = mean(rating - mu - b_i))
-
-predicted_ratings <- test_set %>% 
-  left_join(movie_avgs, by='movieId') %>%
-  left_join(user_avgs, by='userId') %>%
-  mutate(pred = mu + b_i + b_u) %>%
-  .$pred
-
-model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
-model_2_rmse
-
-
-predicted_ratings <- test_set %>% 
-  left_join(movie_avgs, by='movieId') %>%
-  left_join(user_avgs, by='userId') %>%
-  mutate(temp = mu + b_i + b_u) %>%
-  mutate(pred = ifelse(is.na(temp), mu-1, temp)) %>%
-  .$pred
-
-model_2_rmse <- RMSE(predicted_ratings, test_set$rating)
-model_2_rmse
-
-predicted_ratings <- validation %>% 
-  left_join(movie_avgs, by='movieId') %>%
-  left_join(user_avgs, by='userId') %>%
-  mutate(temp = mu + b_i + b_u) %>%
-  mutate(pred = ifelse(is.na(temp), mu-1, temp)) %>%
-  .$pred
-
-model_2_rmse <- RMSE(predicted_ratings, validation$rating)
-model_2_rmse

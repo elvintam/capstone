@@ -73,7 +73,7 @@ test_set %>%
   select(title,  residual) %>% 
   slice(1:10) %>% knitr::kable()
 
-movie_titles <- movielens %>% 
+movie_titles <- train_set %>% 
   select(movieId, title) %>%
   distinct()
 
