@@ -43,7 +43,6 @@ rateperyear_avgs <- train_set %>%
   #mutate(b_r = sum(pred - mu) / (n() + l)) %>%
   select(movieId, b_r)
 
-rateperyear_avgs
 
  # temp <- test_set %>%
  #   filter(movieId %in% setdiff(test_set$movieId, train_set$movieId)) %>%
@@ -74,9 +73,6 @@ model_1 <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method = "RateperYear", 
                                  RMSE = model_1))
-
-#options(pillar.sigfig = 7)
-#rmse_results
 
 #end rateperyear_avg
 
@@ -122,7 +118,6 @@ model_3 <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method="RateperYear + Movie + User",  
                                  RMSE = model_3 ))
-#rmse_results
 
 #end user_avgs
 
@@ -146,6 +141,8 @@ model_4 <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
                           tibble(method="RateperYear + Movie + User + Genre",  
                                  RMSE = model_4 ))
+
+options(pillar.sigfig = 7)
 rmse_results
 
 # return(model_4)

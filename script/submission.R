@@ -6,20 +6,20 @@ library(lubridate)
 # ### pre-processing
 # temp <- edx
 # 
-# temp <- temp %>% separate(title, into = c("title", "year"), sep = "\\s\\((?=[0-9]{4}\\))", remove = TRUE) %>% 
+# temp <- temp %>% separate(title, into = c("title", "year"), sep = "\\s\\((?=[0-9]{4}\\))", remove = TRUE) %>%
 #   mutate(year = as.numeric(str_sub(year, 1, 4))) %>%
 #   mutate(genrescount = str_count(genres, pattern = "\\|") + 1) %>%
 #   mutate(date = as_datetime(timestamp)) %>% select(-timestamp)
 # ### pre-processing
 # 
 # ### partition creation
-# set.seed(78789, sample.kind="Rounding") 
+# set.seed(78789, sample.kind="Rounding")
 # test_index <- createDataPartition(y = temp$rating, times = 1,
 #                                   p = 0.2, list = FALSE)
 # test_set <- temp[test_index,]
 # train_set <- temp[-test_index,]
 # 
-# test_set <- test_set %>% 
+# test_set <- test_set %>%
 #   semi_join(train_set, by = "movieId") %>%
 #   semi_join(train_set, by = "userId")
 # 
