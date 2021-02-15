@@ -65,5 +65,11 @@ train_set %>%
 
 #end chart
 
-
+train_set %>% 
+  mutate(date = round_date(date, unit = "week")) %>%
+  group_by(date) %>%
+  summarize(rating = mean(rating)) %>%
+  ggplot(aes(date, rating)) +
+  geom_point() +
+  geom_smooth()
 

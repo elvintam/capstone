@@ -4,9 +4,9 @@ library(data.table)
 library(lubridate)
 
 
-# lambdas <- seq(4, 5, 0.05)
+# lambdas <- seq(2, 6, 0.25)
 
-lambdas <- 4.25
+lambdas <- 4.5
 l <- lambdas
 
 # rmses <- sapply(lambdas, function(l) {
@@ -60,82 +60,99 @@ rmse_results <- bind_rows(rmse_results,
                           tibble(method = "RateperYear", 
                                  RMSE = model_1))
 
-# temp <- test_set %>%
-#   filter(movieId %in% setdiff(test_set$movieId, train_set$movieId)) %>%
-#   group_by(movieId) %>%
-#   summarize(n = n(), years = 2009 - first(year),
-#             rating = mean(rating)) %>%
-#   mutate(rateperyear = n/years) %>%
-#   mutate(pred = fit_rateperyear$coef[1] + fit_rateperyear$coef[2] * rateperyear) %>%
-#   mutate(b_r = pred - mu) %>%
-#   select(movieId, b_r)
-# 
-# rateperyear_avgs <- rbind(rateperyear_avgs, temp)
-# rm(temp)
-# not used due to removed already
+week_avgs <- train_set %>%
+  left_join(rateperyear_avgs, by='movieId') %>%
+  mutate(date = round_date(date, unit = "week")) %>%
+  group_by(date) %>%
+  summarize(b_w = sum(rating - mu + b_r) / (n() + l))
 
-# end rateperyear_avg
+predicted_ratings <- test_set %>%
+  left_join(rateperyear_avgs, by='movieId') %>%
+  mutate(date = round_date(date, unit = "week")) %>%
+  left_join(week_avgs, by='date') %>%
+  mutate(pred = mu + b_r + b_w) %>%
+  pull(pred)
+
+predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
+
+model_5 <- RMSE(predicted_ratings, test_set$rating)
+rmse_results <- bind_rows(rmse_results,
+                          tibble(method="RateperYear + Week",
+                                 RMSE = model_5 ))
+
 
 movie_avgs <- train_set %>%
   left_join(rateperyear_avgs, by='movieId') %>%
+  mutate(date = round_date(date, unit = "week")) %>%
+  left_join(week_avgs, by='date') %>%
   group_by(movieId) %>%
-  summarize(b_i = sum(rating - mu - b_r) / (n() + l))
+  summarize(b_i = sum(rating - mu - b_r - b_w) / (n() + l))
 
-predicted_ratings <- test_set %>% 
+predicted_ratings <- test_set %>%
   left_join(rateperyear_avgs, by='movieId') %>%
+  mutate(date = round_date(date, unit = "week")) %>%
+  left_join(week_avgs, by='date') %>%
   left_join(movie_avgs, by='movieId') %>%
-  mutate(pred = mu + b_r + b_i) %>%
+  mutate(pred = mu + b_r + b_w + b_i) %>%
   pull(pred)
 
 predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
 
 model_2 <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
-                          tibble(method="RateperYear + Movie",  
+                          tibble(method="RateperYear + Week + Movie",
                                  RMSE = model_2 ))
 
 #end movie_avgs
 
 user_avgs <- train_set %>%
   left_join(rateperyear_avgs, by='movieId') %>%
+  mutate(date = round_date(date, unit = "week")) %>%
+  left_join(week_avgs, by='date') %>%
   left_join(movie_avgs, by='movieId') %>%
   group_by(userId) %>%
-  summarize(b_u = sum(rating - mu - b_r - b_i) / (n() + l))
+  summarize(b_u = sum(rating - mu - b_r - b_w - b_i) / (n() + l))
 
-predicted_ratings <- test_set %>% 
+predicted_ratings <- test_set %>%
   left_join(rateperyear_avgs, by='movieId') %>%
+  mutate(date = round_date(date, unit = "week")) %>%
+  left_join(week_avgs, by='date') %>%
   left_join(movie_avgs, by='movieId') %>%
   left_join(user_avgs, by='userId') %>%
-  mutate(pred = mu + b_r + b_i + b_u) %>%
+  mutate(pred = mu + b_r + b_w + b_i + b_u) %>%
   pull(pred)
 
 predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
 model_3 <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
-                          tibble(method="RateperYear + Movie + User",  
+                          tibble(method="RateperYear + Movie + User",
                                  RMSE = model_3 ))
 
 #end user_avgs
 
 genre_avgs <- train_set %>%
   left_join(rateperyear_avgs, by='movieId') %>%
+  mutate(date = round_date(date, unit = "week")) %>%
+  left_join(week_avgs, by='date') %>%
   left_join(movie_avgs, by='movieId') %>%
   left_join(user_avgs, by='userId') %>%
   group_by(genres) %>%
-  summarize(b_g = sum(rating - mu - b_r - b_i - b_u) / (n() + l))
+  summarize(b_g = sum(rating - mu - b_r - b_w - b_i - b_u) / (n() + l))
 
-predicted_ratings <- test_set %>% 
+predicted_ratings <- test_set %>%
   left_join(rateperyear_avgs, by='movieId') %>%
+  mutate(date = round_date(date, unit = "week")) %>%
+  left_join(week_avgs, by='date') %>%  
   left_join(movie_avgs, by='movieId') %>%
   left_join(user_avgs, by='userId') %>%
   left_join(genre_avgs, by='genres') %>%
-  mutate(pred = mu + b_r + b_i + b_u + b_g) %>%
+  mutate(pred = mu + b_r + b_w + b_i + b_u + b_g) %>%
   pull(pred)
 
 predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
 model_4 <- RMSE(predicted_ratings, test_set$rating)
 rmse_results <- bind_rows(rmse_results,
-                          tibble(method="RateperYear + Movie + User + Genre",  
+                          tibble(method="RateperYear + Movie + User + Genre",
                                  RMSE = model_4 ))
 
 options(pillar.sigfig = 7)
@@ -146,7 +163,7 @@ rmse_results
 # })
 
 # qplot(lambdas, rmses)
-
+# 
 # min(rmses)
 # lambdas[which.min(rmses)]
 

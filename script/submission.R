@@ -27,6 +27,7 @@ library(lubridate)
 # ### end partition creation
 
 mu <- mean(train_set$rating)
+l <- 4.25
 
 ### fit_rateperyear model, use 2009 as end since max year is 2008
 fit_rateperyear <- train_set %>% 
@@ -52,20 +53,20 @@ rateperyear_avgs <- train_set %>%
 movie_avgs <- train_set %>%
   left_join(rateperyear_avgs, by='movieId') %>%
   group_by(movieId) %>%
-  summarize(b_i = mean(rating - mu - b_r))
+  summarize(b_i = sum(rating - mu - b_r) / (n() + l))
 
 user_avgs <- train_set %>%
   left_join(rateperyear_avgs, by='movieId') %>%
   left_join(movie_avgs, by='movieId') %>%
   group_by(userId) %>%
-  summarize(b_u = mean(rating - mu - b_r - b_i))
+  summarize(b_u = sum(rating - mu - b_r - b_i) / (n() + l))
 
 genre_avgs <- train_set %>%
   left_join(rateperyear_avgs, by='movieId') %>%
   left_join(movie_avgs, by='movieId') %>%
   left_join(user_avgs, by='userId') %>%
   group_by(genres) %>%
-  summarize(b_g = mean(rating - mu - b_r - b_i - b_u))
+  summarize(b_g = sum(rating - mu - b_r - b_i - b_u) / (n() + l))
 
 predicted_ratings <- test_set %>% 
   left_join(rateperyear_avgs, by='movieId') %>%
@@ -74,5 +75,7 @@ predicted_ratings <- test_set %>%
   left_join(genre_avgs, by='genres') %>%
   mutate(pred = mu + b_r + b_i + b_u + b_g) %>%
   pull(pred)
+
+predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
 
 RMSE(predicted_ratings, test_set$rating)
