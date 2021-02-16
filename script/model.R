@@ -122,6 +122,7 @@ rmse_results <- bind_rows(rmse_results,
                           tibble(method = "Movie + User + Genre + RateperYear",
                                  RMSE = model_4))
 
+options(pillar.sigfig = 7)
 rmse_results
 
 # return(model_4)
@@ -143,25 +144,25 @@ min(predicted_ratings)
 max(predicted_ratings)
 
 
-# ### validation set
-# 
-# temp <- validation %>%
-#   semi_join(train_set, by = "movieId") %>%
-#   semi_join(train_set, by = "userId")
-# 
-# predicted_ratings <- temp %>%
-#   left_join(movie_avgs, by='movieId') %>%
-#   left_join(user_avgs, by='userId') %>%
-#   left_join(genre_avgs, by='genres') %>%
-#   left_join(rateperyear, by='movieId') %>%
-#   mutate(pred = mu + b_i + b_u + b_g + b_r) %>%
-#   pull(pred)
-# 
-# predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
-# 
-# RMSE(predicted_ratings, temp$rating)
-# 
-# # qplot(predicted_ratings)
-# # 
-# # min(predicted_ratings)
-# # max(predicted_ratings)
+### validation set
+
+temp <- validation %>%
+  semi_join(train_set, by = "movieId") %>%
+  semi_join(train_set, by = "userId")
+
+predicted_ratings <- temp %>%
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  left_join(genre_avgs, by='genres') %>%
+  left_join(rateperyear, by='movieId') %>%
+  mutate(pred = mu + b_i + b_u + b_g + b_r) %>%
+  pull(pred)
+
+predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
+
+RMSE(predicted_ratings, temp$rating)
+
+# qplot(predicted_ratings)
+#
+# min(predicted_ratings)
+# max(predicted_ratings)
