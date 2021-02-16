@@ -100,76 +100,33 @@ rmse_results <- bind_rows(rmse_results,
 
 
 
-# user_1stratedate <- train_set %>%
-#   group_by(userId) %>%
-#   summarize(firstratedate = min(date)) %>%
-#   ungroup()
+
+
+
+# genre_avgs <- train_set %>%
+#   left_join(rateperyear_avgs, by='movieId') %>%
+#   left_join(movie_avgs, by='movieId') %>%
+#   left_join(user_avgs, by='userId') %>%
+#   group_by(genres) %>%
+#   summarize(b_g = sum(rating - mu - b_r - b_i - b_u) / (n() + l))
 # 
-# predndayrating <- function(x, y){
-#   
-#   fit <- train_set %>% filter(userId == x) %>%
-#     left_join(user_1stratedate, by = 'userId') %>%
-#     mutate(nday = sqrt(interval(firstratedate, date) / ddays(1))) %>%
-#     lm(rating ~ nday, data = .)
-#   
-#   fit$coef[1] + fit$coef[2] * sqrt(y)
-# }
+# predicted_ratings <- test_set %>%
+#   left_join(rateperyear_avgs, by='movieId') %>%
+#   left_join(movie_avgs, by='movieId') %>%
+#   left_join(user_avgs, by='userId') %>%
+#   left_join(genre_avgs, by='genres') %>%
+#   mutate(pred = mu + b_r + b_i + b_u + b_g) %>%
+#   pull(pred)
 # 
-# user_ratenday <- train_set %>% 
-#   left_join(user_1stratedate, by = 'userId') %>%
-#   mutate(nday = sqrt(interval(firstratedate, date) / ddays(1)),
-#          pred = predndayrating(userId, nday),
-#          b_un = pred - mu - b_r - b_i - b_u)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-genre_avgs <- train_set %>%
-  left_join(rateperyear_avgs, by='movieId') %>%
-  left_join(movie_avgs, by='movieId') %>%
-  left_join(user_avgs, by='userId') %>%
-  group_by(genres) %>%
-  summarize(b_g = sum(rating - mu - b_r - b_i - b_u) / (n() + l))
-
-predicted_ratings <- test_set %>%
-  left_join(rateperyear_avgs, by='movieId') %>%
-  left_join(movie_avgs, by='movieId') %>%
-  left_join(user_avgs, by='userId') %>%
-  left_join(genre_avgs, by='genres') %>%
-  mutate(pred = mu + b_r + b_i + b_u + b_g) %>%
-  pull(pred)
-
-predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
-
-model_4 <- RMSE(predicted_ratings, test_set$rating)
-rmse_results <- bind_rows(rmse_results,
-                          tibble(method="RateperYear + Movie + User + Genre",
-                                 RMSE = model_4 ))
-
-options(pillar.sigfig = 7)
-rmse_results
+# predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
+# 
+# model_4 <- RMSE(predicted_ratings, test_set$rating)
+# rmse_results <- bind_rows(rmse_results,
+#                           tibble(method="RateperYear + Movie + User + Genre",
+#                                  RMSE = model_4 ))
+# 
+# options(pillar.sigfig = 7)
+# rmse_results
 
 
 
