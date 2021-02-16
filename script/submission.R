@@ -9,7 +9,7 @@ temp <- edx
 temp <- temp %>% separate(title, into = c("title", "year"), sep = "\\s\\((?=[0-9]{4}\\))", remove = TRUE) %>%
   mutate(year = as.numeric(str_sub(year, 1, 4))) %>%
   mutate(date = as_datetime(timestamp)) %>% select(-timestamp)
-### pre-processing
+### end pre-processing
 
 ### partition creation
 set.seed(12345, sample.kind="Rounding")
@@ -26,6 +26,10 @@ rm(temp, test_index)
 ### end partition creation
 
 mu <- mean(train_set$rating)
+
+max(train_set$year)
+
+max(train_set$date)
 
 l <- 4.95
 #cross validated with test set
@@ -45,7 +49,7 @@ genre_avgs <- train_set %>%
   group_by(genres) %>%
   summarize(b_g = sum(rating - mu - b_i - b_u) / (n() + l))
 
-### fit_rateperyear model, use 2009 as end since max year is 2008
+### Rate per year model, use 2009 as end year since max year is 2008
 fit_rateperyear <- train_set %>%
   left_join(movie_avgs, by="movieId") %>%
   left_join(user_avgs, by="userId") %>%
@@ -66,10 +70,10 @@ rateperyear <- train_set %>%
   summarize(n = n(), years = 2009 - min(year),
             rating = mean(rating)) %>%
   mutate(rateperyear = n/years,
-         pred = ifelse(n < (mean(.$rating) - fit_rateperyear$coef[1])/fit_rateperyear$coef[2],
+         pred = ifelse(n < (mean(rating) - fit_rateperyear$coef[1])/fit_rateperyear$coef[2],
                        fit_rateperyear$coef[1] + fit_rateperyear$coef[2] * rateperyear,
                        rating )) %>%
-  mutate(b_r = pred - mean(.$rating)) %>%
+  mutate(b_r = pred - mean(rating)) %>%
   select(movieId, b_r)
 
 
