@@ -32,7 +32,7 @@ l <- 4.25
 ### fit_rateperyear model, use 2009 as end since max year is 2008
 fit_rateperyear <- train_set %>% 
   group_by(movieId) %>%
-  summarize(n = n(), years = 2009 - first(year),
+  summarize(n = n(), years = 2009 - min(year),
             rating = mean(rating)) %>%
   mutate(rateperyear = n/years) %>%
   lm(rating ~ rateperyear, data = .)
@@ -41,8 +41,7 @@ fit_rateperyear <- train_set %>%
 
 rateperyear_avgs <- train_set %>% 
   group_by(movieId) %>%
-  summarize(n = n(), years = 2009 - first(year),
-            rating = mean(rating)) %>%
+  summarize(n = n(), years = 2009 - first(year)) %>%
   mutate(rateperyear = n/years) %>%
   mutate(pred = ifelse(n < (mu - fit_rateperyear$coef[1])/fit_rateperyear$coef[2], 
                        fit_rateperyear$coef[1] + fit_rateperyear$coef[2] * rateperyear, 
@@ -79,3 +78,26 @@ predicted_ratings <- test_set %>%
 predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
 
 RMSE(predicted_ratings, test_set$rating)
+
+### validation set
+
+temp <- validation %>%
+  semi_join(train_set, by = "movieId") %>%
+  semi_join(train_set, by = "userId")
+
+predicted_ratings <- temp %>% 
+  left_join(rateperyear_avgs, by='movieId') %>%
+  left_join(movie_avgs, by='movieId') %>%
+  left_join(user_avgs, by='userId') %>%
+  left_join(genre_avgs, by='genres') %>%
+  mutate(pred = mu + b_r + b_i + b_u + b_g) %>%
+  pull(pred)
+
+# removed <- validation %>%
+#   anti_join(train_set, by = "movieId")
+# 
+# predicted_ratings <- rbind()
+
+predicted_ratings <- ifelse(predicted_ratings <0, 0, ifelse(predicted_ratings >5 , 5, predicted_ratings))
+
+RMSE(predicted_ratings, temp$rating)

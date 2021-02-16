@@ -55,8 +55,7 @@ train_set %>% group_by(movieId) %>%
 
 train_set %>% 
   group_by(movieId) %>%
-  summarize(n = n(), years = 2009 - first(year),
-            title = title[1],
+  summarize(n = n(), years = 2009 - min(year),
             rating = mean(rating)) %>%
   mutate(rate = n/years) %>%
   ggplot(aes(rate, rating)) +
