@@ -27,9 +27,7 @@ rm(temp, test_index)
 
 mu <- mean(train_set$rating)
 
-max(train_set$year)
-
-max(train_set$date)
+maxyear <- max(max(train_set$year) + 1, year(max(train_set$date)))
 
 l <- 4.95
 #cross validated with test set
@@ -56,7 +54,7 @@ fit_rateperyear <- train_set %>%
   left_join(genre_avgs, by="genres") %>%
   mutate(rating = rating - mu - b_i - b_u - b_g) %>%
   group_by(movieId) %>%
-  summarize(n = n(), years = 2009 - min(year),
+  summarize(n = n(), years = maxyear - min(year),
             rating = mean(rating)) %>%
   mutate(rateperyear = n/years) %>%
   lm(rating ~ rateperyear, data = .)
@@ -67,7 +65,7 @@ rateperyear <- train_set %>%
   left_join(genre_avgs, by="genres") %>%
   mutate(rating = rating - mu - b_i - b_u - b_g) %>%
   group_by(movieId) %>%
-  summarize(n = n(), years = 2009 - min(year),
+  summarize(n = n(), years = maxyear - min(year),
             rating = mean(rating)) %>%
   mutate(rateperyear = n/years,
          pred = ifelse(n < (mean(rating) - fit_rateperyear$coef[1])/fit_rateperyear$coef[2],
