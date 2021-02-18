@@ -116,3 +116,5 @@ predicted_ratings <- c(predicted_ratings, rep(mu, nrow(removed)))
 
 print("Validation Set")
 RMSE(predicted_ratings, temp$rating)
+
+rm(temp, removed)
