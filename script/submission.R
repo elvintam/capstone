@@ -27,7 +27,8 @@ rm(temp, test_index)
 
 mu <- mean(train_set$rating)
 
-maxyear <- max(max(train_set$year) + 1, year(max(train_set$date)))
+maxyear <- max(train_set$year) + 1
+#use year + 1 as end year to calculate Rate per Year
 
 l <- 4.95
 #cross validated with test set
@@ -47,7 +48,7 @@ genre_avgs <- train_set %>%
   group_by(genres) %>%
   summarize(b_g = sum(rating - mu - b_i - b_u) / (n() + l))
 
-### Rate per year model, use 2009 as end year since max year is 2008
+### Rate per year model
 fit_rateperyear <- train_set %>%
   left_join(movie_avgs, by="movieId") %>%
   left_join(user_avgs, by="userId") %>%
