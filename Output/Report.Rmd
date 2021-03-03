@@ -23,7 +23,7 @@ library(caret)
 library(data.table)
 library(lubridate)
 
-head(edx)
+#head(edx)
 
 
 ```
