@@ -3,8 +3,9 @@ title: "MovieLens Project"
 author: "Elvin Tam"
 date: "2/19/2021"
 output:
-  pdf_document: default
+  word_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
