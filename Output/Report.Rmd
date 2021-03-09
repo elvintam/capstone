@@ -3,11 +3,8 @@ title: "MovieLens Project"
 author: "Elvin Tam"
 date: "2/19/2021"
 output:
-<<<<<<< HEAD
-  word_document: default
-=======
->>>>>>> 4dc14a43d0df2cc953a92bfda4c897536d59138f
   html_document: default
+  word_document: default
   pdf_document: default
 ---
 
