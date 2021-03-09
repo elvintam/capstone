@@ -31,40 +31,66 @@ rm(temp, test_index)
 
 head(train_set)
 
+mu <- mean(train_set$rating)
+
+maxyear <- max(train_set$year) + 1
+
+
+### data exploration
 
 
 
-### data explory
+## plot of avg rating for each movie
 
-summary(train_set)
 
-train_set %>% group_by(movieId) %>%
-  summarize(n = n(), year = as.character(first(year))) %>%
-  qplot(year, n, data = ., geom = "boxplot") +
-  coord_trans(y = "sqrt") +
+
+train_set %>% 
+  group_by(movieId) %>% 
+  summarize(b_i = mean(rating - mu)) %>%
+  summarize(avg = mean(b_i)) %>% pull(avg)
+
+
+# movie specific bias
+train_set %>% 
+  group_by(movieId) %>% 
+  summarize(b_i = mean(rating - mu)) %>%
+  ggplot(aes(b_i)) + 
+    geom_histogram(bins = 10, color = "black")
+
+# user specific bias
+train_set %>% 
+  group_by(userId) %>% 
+  summarize(b_u = mean(rating - mu)) %>% 
+  #filter(n()>=100) %>%
+  ggplot(aes(b_u)) + 
+  geom_histogram(bins = 10, color = "black")
+
+## genre specific bias
+train_set %>% group_by(genres) %>%
+  summarize(n = n(), avg = mean(rating - mu), se = sd(rating)/sqrt(n())) %>%
+  filter(n >= 20000) %>% 
+  mutate(genres = reorder(genres, avg)) %>%
+  ggplot(aes(x = genres, y = avg, ymin = avg - 2*se, ymax = avg + 2*se)) + 
+  geom_point() +
+  geom_errorbar() + 
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
-
-
-### rating based on rate chart
+## Rate per Year specific bias
 
 train_set %>% 
   group_by(movieId) %>%
-  summarize(n = n(), years = 2009 - min(year),
+  summarize(n = n(), years = maxyear - min(year),
             rating = mean(rating)) %>%
   mutate(rate = n/years) %>%
   ggplot(aes(rate, rating)) +
   geom_point() +
-  geom_smooth(method = "lm")
+  geom_smooth() +
+  geom_hline(yintercept = mu, color = "red", size = 1, linetype = "dashed")
 
 #end chart
 
-train_set %>% 
-  mutate(date = round_date(date, unit = "week")) %>%
-  group_by(date) %>%
-  summarize(rating = mean(rating)) %>%
-  ggplot(aes(date, rating)) +
-  geom_point() +
-  geom_smooth()
+
+## regularization
+
 

@@ -31,7 +31,7 @@ maxyear <- max(train_set$year) + 1
 #use year + 1 as end year to calculate Rate per Year
 
 l <- 4.95
-#cross validated with test set
+#cross validated with train set
 
 movie_avgs <- train_set %>%
   group_by(movieId) %>%
