@@ -35,7 +35,6 @@ mu <- mean(train_set$rating)
 
 maxyear <- max(train_set$year) + 1
 
-
 ### data exploration
 
 

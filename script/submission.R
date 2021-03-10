@@ -30,7 +30,6 @@ mu <- mean(train_set$rating)
 maxyear <- max(train_set$year) + 1
 #use year + 1 as end year to calculate Rate per Year
 
-#l <- 4.95
 l <- 2.9
 #cross validated with train set
 
