@@ -30,7 +30,8 @@ mu <- mean(train_set$rating)
 maxyear <- max(train_set$year) + 1
 #use year + 1 as end year to calculate Rate per Year
 
-l <- 4.95
+#l <- 4.95
+l <- 2.9
 #cross validated with train set
 
 movie_avgs <- train_set %>%
@@ -106,14 +107,17 @@ predicted_ratings <- temp %>%
   mutate(pred = ifelse(pred <0, 0, ifelse(pred >5 , 5, pred))) %>%
   pull(pred)
 
-removed <- validation %>%
-  anti_join(temp, by = "movieId")
+removed1 <- validation %>%
+  anti_join(temp, by = "movieId") 
 
-temp <- rbind(temp, removed)
+removed2 <- validation %>%
+  anti_join(temp, by = "userId")
 
-predicted_ratings <- c(predicted_ratings, rep(mu, nrow(removed)))
+temp <- rbind(temp, removed1, removed2)
+
+predicted_ratings <- c(predicted_ratings, rep(mu, nrow(removed1) + nrow(removed2)))
 
 print("Validation Set")
 RMSE(predicted_ratings, temp$rating)
 
-rm(temp, removed)
+rm(temp, removed1, removed2)
