@@ -3,8 +3,9 @@ title: 'Data Science: Capstone Project - MovieLens'
 author: "Elvin Tam"
 date: "3/10/2021"
 output:
+  pdf_document:
+     latex_engine: xelatex
   html_document: default
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -22,7 +23,7 @@ Data cleaning is applied to the original data following with data exploration. 4
 3.	Genre specific effect
 4.	Rate per Year specific effect
 
-The evaluation of algorithm is based on root mean squared error (RMSE) of predicted rating against actual rating. Algorithm is trained on train set and being test on test set. Final RMSE is presented basing the on the final hold-out validation set with result in the tier of “RMSE < 0.86490”.
+The evaluation of algorithm is based on root mean squared error (RMSE) of predicted rating against actual rating. Algorithm is trained on train set and being test on test set. Final RMSE is presented basing the on the final hold-out validation set with result in the tier of RMSE < 0.86490.
 
 
 ```{r package_data, include=FALSE}
@@ -30,7 +31,6 @@ library(tidyverse)
 library(caret)
 library(data.table)
 library(lubridate)
-library(pander)
 
 ratings <- fread(text = gsub("::", "\t", readLines("ml-10M100K/ratings.dat")),
                  col.names = c("userId", "movieId", "rating", "timestamp"))
@@ -80,12 +80,15 @@ head(edx)
 In order to facilitate movie rating prediction modelling, pre-process data cleaning is applied to edx data set prior to data partition creation. Title column is split to title and year. Timestamp which is number of second since 1-Jan-1970 00:00:00 is converted to date. Using createDataPatition function from caret package to create train set and test set with percentage of 80% and 20% correspondingly. Semi-join by movieId and userId is applied to test set to avoid NA situation when joining is applied to test set in validation stage.
 
 ```{r data_cleaning, echo=TRUE, warning=FALSE}
+#Data Cleaning
 temp <- edx
 
-temp <- temp %>% separate(title, into = c("title", "year"), sep = "\\s\\((?=[0-9]{4}\\))", remove = TRUE) %>%
+temp <- temp %>% separate(title, into = c("title", "year"), 
+                          sep = "\\s\\((?=[0-9]{4}\\))", remove = TRUE) %>%
   mutate(year = as.numeric(str_sub(year, 1, 4))) %>%
   mutate(date = as_datetime(timestamp)) %>% select(-timestamp)
 
+#Create Data Partition
 set.seed(12345, sample.kind="Rounding")
 test_index <- createDataPartition(y = temp$rating, times = 1,
                                   p = 0.2, list = FALSE)
@@ -105,7 +108,7 @@ head(train_set)
 
 ## 2. Data Exploration
 
-From train set, we can simplify find the average rating across all movies and all users is μ = 3.51 and the end year of all movies is 2008. To avoid dividing by zero in rate per year calculation, we are using 2009 (2008 + 1) as the end year.
+From train set, we can simplify find the average rating across all movies and all users is mu = 3.51 and the end year of all movies is 2008. To avoid dividing by zero in rate per year calculation, we are using 2009 (2008 + 1) as the end year.
 
 ```{r mu_code, echo=TRUE}
 mu <- mean(train_set$rating)
@@ -122,7 +125,7 @@ maxyear
 
 ### A.	Movie specific effect (b_i)
 
-From below chart, we can find that average movie rating adjusted by μ is at -0.32 with distribution skewed to the left side.  
+From below chart, we can find that average movie rating adjusted by mu is at -0.32 with distribution skewed to the left side.  
 
 ```{r movie_effect, echo=TRUE}
 train_set %>% 
@@ -140,7 +143,7 @@ train_set %>%
 
 ### B.	User specific effect (b_u)
 
-On the other hand, we can find that average user rating adjusted by μ is 0.10 with more user giving above average rating.
+On the other hand, we can find that average user rating adjusted by mu is 0.10 with more user giving above average rating.
 
 ```{r user_effect, echo=TRUE}
 train_set %>% 
@@ -158,7 +161,7 @@ train_set %>%
 
 #### C.	Genre specific effect
 
-We only illustrate the genres with rating more than 20K times in below chart. We can see that there is clear relation between rating adjusted by μ and genre. The lowest average rating is coming from “Comedy | Horror” while “Crime | Mystery | Thriller” has the highest average rating.
+We only illustrate the genres with rating more than 20K times in below chart. We can see that there is clear relation between rating adjusted by mu and genre. The lowest average rating is coming from “Comedy | Horror” while “Crime | Mystery | Thriller” has the highest average rating.
 
 ```{r genre_effect, echo=TRUE}
 train_set %>% group_by(genres) %>%
@@ -173,7 +176,7 @@ train_set %>% group_by(genres) %>%
 
 ### D.	Rate per Year specific effect (b_r)
 
-From below chart, we can see that the more often a movie is rated per year, the higher its average rating adjusted by mu (the blue line). Basing on the observation, a lower value will be given if rate per year is lower the corresponding rating per year of μ. For details, please refer to section 3 of modeling approach.
+From below chart, we can see that the more often a movie is rated per year, the higher its average rating adjusted by mu (the blue line). Basing on the observation, a lower value will be given if rate per year is lower the corresponding rating per year of mu. For details, please refer to section 3 of modeling approach.
 
 ```{r rateperyear_effect, echo=TRUE, message=FALSE, warning=FALSE}
 train_set %>% 
@@ -185,18 +188,18 @@ train_set %>%
   geom_point() +
   geom_smooth() +
   geom_hline(yintercept = 0, color = "red", size = 1, linetype = "dashed") +
-  geom_text(label = "μ", x= 1700, y = 0.15, color = "red")
+  geom_text(label = "mu", x= 1700, y = 0.15, color = "red")
 ```
 
 ## 3. Modeling Approach
 
 ### Normalization of Global Effects
 
-We are using the approach of normalization of global effects in this project. Basing on the above 4 findings, we decompose 4 global effects starting from assuming the same rating (μ, average rating) across all movies and all users. The differences is explained by specific effects from Movie (b_i) / User (b_u) / Genre (b_g) / Rate per Year (b_r) and random variation (εu,i).
+We are using the approach of normalization of global effects in this project. Basing on the above 4 findings, we decompose 4 global effects starting from assuming the same rating (mu, average rating) across all movies and all users. The differences is explained by specific effects from Movie (b_i) / User (b_u) / Genre (b_g) / Rate per Year (b_r) and random variation (eu,i).
 
-Yu,i = μ + b_i + b_u + b_g + b_r + εu,i
+Yu,i = mu + b_i + b_u + b_g + b_r + eu,i
 
-Movie / User / Genre effects tables are created by taking average of the rating minus μ and the other bias one by one. Codes are extracted below.
+Movie / User / Genre effects tables are created by taking average of the rating minus mu and the other bias one by one. Codes are extracted below.
 
 summarize(b_i = sum(rating - mu) / (n() + l))
 
@@ -204,7 +207,7 @@ summarize(b_u = sum(rating - mu - b_i) / (n() + l))
 
 summarize(b_g = sum(rating - mu - b_i - b_u) / (n() + l))
 
-For Rate per Year effect table, a linear regression model fit_rateperyear is created. First, we adjust the rating with μ and above 3 effects and fit the rating with rate per year in a simple linear regression model. Using the regression model, if rate per year is less than the corresponding number of rating per year of average rating, we use model to predict new rating. If not, we keep the original rating. With this approach, we are trying to lower the prediction of rating affected by rate per year.
+For Rate per Year effect table, a linear regression model fit_rateperyear is created. First, we adjust the rating with mu and above 3 effects and fit the rating with rate per year in a simple linear regression model. Using the regression model, if rate per year is less than the corresponding number of rating per year of average rating, we use model to predict new rating. If not, we keep the original rating. With this approach, we are trying to lower the prediction of rating affected by rate per year.
 
 ```{r rateperyear, eval=FALSE, echo=TRUE}
   fit_rateperyear <- train_set %>%
@@ -237,7 +240,7 @@ For Rate per Year effect table, a linear regression model fit_rateperyear is cre
 
 ### Regularization
 
-Movie / User / Genre effects are regularized with λ to penalize large estimates that come from small sample size with the shrunk prediction. λ is a tuning parameter using cross-validation to choose minimum RSME on train set only. This process doesn’t apply to Rate per Year effect because this effect has already penalized the prediction with lower-than-average Rate per Year. λ of 2.9 is chosen.
+Movie / User / Genre effects are regularized with λ to penalize large estimates that come from small sample size with the shrunk prediction. l(lambda    ) is a tuning parameter using cross-validation to choose minimum RSME on train set only. This process doesn’t apply to Rate per Year effect because this effect has already penalized the prediction with lower-than-average Rate per Year. l of 2.9 is chosen.
 
 summarize(b_i = sum(rating - mu) / (n() + l))
 
@@ -326,7 +329,7 @@ Since our target is to predict the movie rating which is only from 0 to 5. It is
 mutate(pred = ifelse(pred <0, 0, ifelse(pred >5 , 5, pred)))
 ```
 
-It is possible to encounter a movie or a user in validation set that does not appear in the train set. Under this scenario, rating of μ is predicted.
+It is possible to encounter a movie or a user in validation set that does not appear in the train set. Under this scenario, rating of mu is predicted.
 
 ```{r remove, eval=FALSE, echo=TRUE}
 
@@ -345,7 +348,7 @@ predicted_ratings <- c(predicted_ratings, rep(mu, nrow(removed1) + nrow(removed2
 
 # Result
 
-Both RMSE of test set and validation set are in the tier of “RMSE < 0.86490”.
+Both RMSE of test set and validation set are in the tier of RMSE < 0.86490.
 
 ```{r final_result, echo=FALSE, warning=FALSE}
 
@@ -459,6 +462,6 @@ The second time-wasting process is data cleaning specially on the split of title
 
 # Conclusion
 
-This report is using the approach of Normalization of Global Effects and Regularization to capture the main effects in the data. Result RMSE is quite significant in the tier of “RMSE < 0.86490” with handling the 4 effects of Movie / User / Genre / Rate per Year. We can find that these baseline effects have clear impact on the rating distribution under data exploration.
+This report is using the approach of Normalization of Global Effects and Regularization to capture the main effects in the data. Result RMSE is quite significant in the tier of RMSE < 0.86490 with handling the 4 effects of Movie / User / Genre / Rate per Year. We can find that these baseline effects have clear impact on the rating distribution under data exploration.
 
 In addition to the baseline effects, more sophisticated models can be applied, like Neighborhood Model and Matrix factorization. Neighborhood Model (Movie-Movie approach / User-User approach) can identify similar movie and user that are similar to each other. Their ratings are closed to each other. Matrix factorization (SVD / PCA) can identify the latent factors like coefficient of different genres or relevant impact on big name serial movies.
