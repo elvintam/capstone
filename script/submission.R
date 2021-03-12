@@ -12,7 +12,6 @@ ratings <- fread(text = gsub("::", "\t", readLines("ml-10M100K/ratings.dat")),
 movies <- str_split_fixed(readLines("ml-10M100K/movies.dat"), "\\::", 3)
 colnames(movies) <- c("movieId", "title", "genres")
 
-# if using R 4.0 or later:
 movies <- as.data.frame(movies) %>% mutate(movieId = as.numeric(movieId),
                                            title = as.character(title),
                                            genres = as.character(genres))
@@ -47,7 +46,7 @@ temp <- temp %>% separate(title, into = c("title", "year"), sep = "\\s\\((?=[0-9
   mutate(date = as_datetime(timestamp)) %>% select(-timestamp)
 
 
-#Create Data Partition
+#Create Data Partition, test set 80%, train set 20%
 set.seed(12345, sample.kind="Rounding")
 test_index <- createDataPartition(y = temp$rating, times = 1,
                                   p = 0.2, list = FALSE)
@@ -66,10 +65,12 @@ rm(temp, test_index)
 #Average Rating for all movie and all user
 mu <- mean(train_set$rating)
 
-#use year + 1 as end year to calculate Rate per Year
+#use maxyear + 1 as end year to calculate Rate per Year 
+#to avoid divided by zero
 maxyear <- max(train_set$year) + 1
 
 #cross validated with train set
+#regularization process please refer to RMD file
 l <- 2.9
 
 # movie specific effect
@@ -90,7 +91,7 @@ genre_avgs <- train_set %>%
   group_by(genres) %>%
   summarize(b_g = sum(rating - mu - b_i - b_u) / (n() + l))
 
-### Rate per year model
+### Rate per year model, lm mode on rate per year and rating
 fit_rateperyear <- train_set %>%
   left_join(movie_avgs, by="movieId") %>%
   left_join(user_avgs, by="userId") %>%
@@ -103,6 +104,8 @@ fit_rateperyear <- train_set %>%
   lm(rating ~ rateperyear, data = .)
 
 ## Rate per Year specific effect
+## a lower value will be given if rate per year is lower the corresponding rating per year of mu
+## if rate per year is higher than mu, we keep original rating
 rateperyear <- train_set %>%
   left_join(movie_avgs, by="movieId") %>%
   left_join(user_avgs, by="userId") %>%
@@ -120,7 +123,7 @@ rateperyear <- train_set %>%
 
 
 ### test set
-#Prediction Restraint 0 to 5
+#Prediction Restraint 0 to 5 since no prediction is lower than 0 or greater than 5
 
 predicted_ratings <- test_set %>%
   left_join(movie_avgs, by="movieId") %>%
@@ -136,7 +139,7 @@ RMSE(predicted_ratings, test_set$rating)
 
 
 ### validation set
-#Prediction Restraint 0 to 5
+#Prediction Restraint 0 to 5 since no prediction is lower than 0 or greater than 5
 
 temp <- validation %>%
   semi_join(train_set, by = "movieId") %>%
@@ -152,7 +155,8 @@ predicted_ratings <- temp %>%
   pull(pred)
 
 
-#NA Handling
+##NA Handling since not all movie and user in validation set that appears in the train set.
+##if not included, default is mu.
 removed1 <- validation %>%
   anti_join(temp, by = "movieId") 
 
